@@ -42,7 +42,6 @@ def save_tasks():
     except Exception as e:
         print(f"Error saving tasks: {e}")
 
-
 def view_tasks():
     if len(tasks) == 0:
         print("No Tasks Available")
@@ -107,7 +106,7 @@ def add_task():
             else:
                 print("Please enter an existing category.")
 
-    # ✅ NEW IMPORTANCE SYSTEM
+    #NEW IMPORTANCE SYSTEM
     while True:
         try:
             value = int(input(
@@ -147,7 +146,7 @@ def add_task():
         due_date_obj = None
 
         try:
-            # ✅ Try both formats
+            #Try both formats
             for fmt in formats:
                 try:
                     due_date_obj = datetime.strptime(due_input, fmt).date()
@@ -155,27 +154,27 @@ def add_task():
                 except ValueError:
                     continue
 
-            # ❌ If no format worked
+            #If no format worked
             if due_date_obj is None:
                 print("Invalid format. Use DD-MM-YYYY or DD MM YYYY.")
                 continue
 
-            # ✅ Get today's date
+            #Get today's date
             today = date.today()
 
-            # ❌ Reject past dates
+            #Reject past dates
             if due_date_obj < today:
                 print("Due date cannot be in the past.")
                 continue
 
-            # ✅ Store in consistent format
+            #Store in consistent format
             due_date = due_date_obj.strftime("%d-%m-%Y")
             break
 
         except Exception:
             print("Invalid input. Please try again.")
 
-    # ✅ STORE BOTH LABEL + VALUE
+    #STORE BOTH LABEL + VALUE
     task = {
         "name": task_name,
         "category": category,
@@ -230,12 +229,12 @@ def edit_task():
 
     print("\n--- Editing Task ---")
 
-    # ✅ Edit name
+    #Edit name
     new_name = input(f"Enter new name (leave blank to keep '{task['name']}'): ").strip()
     if new_name:
         task["name"] = new_name
 
-    # ✅ Edit category
+    #Edit category
     print("\nAvailable categories:", ", ".join(categories))
     new_category = input(f"Enter new category (leave blank to keep '{task['category']}'): ").strip()
 
@@ -249,7 +248,7 @@ def edit_task():
 
         task["category"] = new_category
 
-    # ✅ Edit importance
+    #Edit importance
     while True:
         new_value_input = input(f"Enter new importance value (1–10) or press Enter to keep ({task.get('value','-')}): ").strip()
 
@@ -279,7 +278,7 @@ def edit_task():
         except ValueError:
             print("Invalid input.")
 
-    # ✅ Edit due date
+    #Edit due date
     from datetime import datetime, date
 
     while True:
@@ -355,7 +354,7 @@ def search_tasks():
         print("Search cannot be empty.")
         return
 
-    # ✅ Filtering logic
+    #Filtering logic
     if option == 1:
         results = [t for t in tasks if keyword in t["name"].lower()]
     elif option == 2:
@@ -382,7 +381,7 @@ def search_tasks():
     from datetime import datetime, date
     today = date.today()
 
-    # ✅ same one-line display style
+    #one-line display style
     for i, task in enumerate(results, start=1):
         status = "[✓]" if task["completed"] else "[ ]"
 
@@ -408,3 +407,46 @@ def search_tasks():
             prefix = "⚪"
 
         print(f"{i}. {prefix} {status} {task['name']} | Due: {task['due_date']} ({due_text}) | {task['category']} | {task['priority']} ({task.get('value','-')})")
+
+
+def filter_tasks(task_list, completed=None, category=None, min_value=None, max_value=None, due_before=None, due_after=None):
+    from datetime import datetime
+
+    results = []
+
+    for task in task_list:
+        #Filter by completion status
+        if completed is not None and task["completed"] != completed:
+            continue
+
+        #Filter by category
+        if category and task["category"].lower() != category.lower():
+            continue
+
+        #Filter by importance (value)
+        if min_value is not None and task.get("value", 0) < min_value:
+            continue
+
+        if max_value is not None and task.get("value", 0) > max_value:
+            continue
+
+        #Convert task date once
+        try:
+            task_date = datetime.strptime(task["due_date"], "%d-%m-%Y").date()
+        except ValueError:
+            continue  # skip invalid dates
+
+        #Filter by due date range
+        if due_before:
+            due_before_date = datetime.strptime(due_before, "%d-%m-%Y").date()
+            if task_date > due_before_date:
+                continue
+
+        if due_after:
+            due_after_date = datetime.strptime(due_after, "%d-%m-%Y").date()
+            if task_date < due_after_date:
+                continue
+
+        results.append(task)
+
+    return results

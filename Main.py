@@ -11,7 +11,8 @@ while True:
     print("4. Edit Task")
     print("5. Delete Tasks")
     print("6. Search Tasks")
-    print("7. Exit")
+    print("7. Filter Tasks")
+    print("8. Exit")
 
     try:
         choice = int(input("Enter your choice: "))
@@ -33,6 +34,8 @@ while True:
         case 6:
             search_tasks()
         case 7:
+            filter_tasks()
+        case 8:
             break
         case _:
             print("Invalid Choice")
