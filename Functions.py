@@ -6,19 +6,34 @@ tasks = []
 categories = ["School", "Work", "Personal", "Study"]
 
 def load_tasks():
-    global tasks
+    global tasks, categories
     try:
         with open("tasks.json", "r") as file:
-            tasks = json.load(file)
+            data = json.load(file)
+
+            # Support both old and new format
+            if isinstance(data, list):
+                tasks = data
+            else:
+                tasks = data.get("tasks", [])
+                categories = data.get("categories", categories)
+
     except (FileNotFoundError, json.JSONDecodeError):
         tasks = []
+        categories = ["School", "Work", "Personal", "Study"]
+
 
 def save_tasks():
     temp_file = "tasks.json.tmp"
 
+    data = {
+        "categories": categories,
+        "tasks": tasks
+    }
+
     try:
         with open(temp_file, "w") as file:
-            json.dump(tasks, file, indent=4)
+            json.dump(data, file, indent=4)
 
         if os.path.exists(temp_file):
             os.replace(temp_file, "tasks.json")
@@ -27,6 +42,7 @@ def save_tasks():
 
     except Exception as e:
         print(f"Error saving tasks: {e}")
+
 
 def view_tasks():
     if len(tasks) == 0:
@@ -41,6 +57,7 @@ def view_tasks():
         print(f"   Priority: {task['priority']}")
         print(f"   Due Date: {task['due_date']}")
         print()
+
 
 def add_task():
     while True:
@@ -66,7 +83,8 @@ def add_task():
             choice = input("Category not found. Add it? (y/n): ").lower()
 
             if choice == "y":
-                categories.append(category)
+                if category not in categories:   # ✅ prevent duplicates
+                    categories.append(category)
                 print(f"Category '{category}' added ✅")
                 break
             else:
@@ -100,7 +118,9 @@ def add_task():
     }
 
     tasks.append(task)
+    save_tasks()   # ✅ save after adding
     print("Task added ✅")
+
 
 def complete_task():
     if len(tasks) == 0:
@@ -117,9 +137,11 @@ def complete_task():
 
     if 1 <= choice <= len(tasks):
         tasks[choice - 1]["completed"] = True
+        save_tasks()   # ✅ save
         print("Task marked as completed ✅")
     else:
         print("Invalid task number")
+
 
 def delete_task():
     if len(tasks) == 0:
@@ -136,6 +158,7 @@ def delete_task():
 
     if 1 <= choice <= len(tasks):
         removed = tasks.pop(choice - 1)
+        save_tasks()   # ✅ save
         print(f"Task '{removed['name']}' deleted ✅")
     else:
         print("Invalid task number")

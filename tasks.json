@@ -1,1 +1,9 @@
-[]
+{
+    "categories": [
+        "School",
+        "Work",
+        "Personal",
+        "Study"
+    ],
+    "tasks": []
+}
