@@ -22,7 +22,6 @@ def load_tasks():
         tasks = []
         categories = ["School", "Work", "Personal", "Study"]
 
-
 def save_tasks():
     temp_file = "tasks.json.tmp"
 
@@ -49,37 +48,9 @@ def view_tasks():
         print("No Tasks Available")
         return
 
-    print("\nView Options:")
-    print("1. All Tasks")
-    print("2. Completed Tasks")
-    print("3. Pending Tasks")
-
-    try:
-        option = int(input("Choose an option: "))
-    except ValueError:
-        print("Invalid input")
-        return
-
     today = date.today()
 
-    filtered_tasks = []
-
-    match option:
-        case 1:
-            filtered_tasks = tasks
-        case 2:
-            filtered_tasks = [t for t in tasks if t["completed"]]
-        case 3:
-            filtered_tasks = [t for t in tasks if not t["completed"]]
-        case _:
-            print("Invalid option")
-            return
-
-    if not filtered_tasks:
-        print("No tasks found for this filter.")
-        return
-
-    for i, task in enumerate(filtered_tasks, start=1):
+    for i, task in enumerate(tasks, start=1):
         status = "[✓]" if task["completed"] else "[ ]"
 
         try:
@@ -217,7 +188,6 @@ def add_task():
     tasks.append(task)
     save_tasks()
     print("Task added ✅")
-
 
 def complete_task():
     if len(tasks) == 0:
@@ -361,3 +331,80 @@ def delete_task():
         print(f"Task '{removed['name']}' deleted ✅")
     else:
         print("Invalid task number")
+
+def search_tasks():
+    if len(tasks) == 0:
+        print("No Tasks Available")
+        return
+
+    print("\nSearch By:")
+    print("1. Name")
+    print("2. Category")
+    print("3. Importance")
+    print("4. Search All")
+
+    try:
+        option = int(input("Choose an option: "))
+    except ValueError:
+        print("Invalid input")
+        return
+
+    keyword = input("Enter keyword: ").strip().lower()
+
+    if not keyword:
+        print("Search cannot be empty.")
+        return
+
+    # ✅ Filtering logic
+    if option == 1:
+        results = [t for t in tasks if keyword in t["name"].lower()]
+    elif option == 2:
+        results = [t for t in tasks if keyword in t["category"].lower()]
+    elif option == 3:
+        results = [t for t in tasks if keyword in t["priority"].lower()]
+    elif option == 4:
+        results = [
+            t for t in tasks
+            if keyword in t["name"].lower()
+            or keyword in t["category"].lower()
+            or keyword in t["priority"].lower()
+        ]
+    else:
+        print("Invalid option")
+        return
+
+    if not results:
+        print("No matching tasks found.")
+        return
+
+    print(f"\nFound {len(results)} result(s):\n")
+
+    from datetime import datetime, date
+    today = date.today()
+
+    # ✅ same one-line display style
+    for i, task in enumerate(results, start=1):
+        status = "[✓]" if task["completed"] else "[ ]"
+
+        try:
+            due_date_obj = datetime.strptime(task["due_date"], "%d-%m-%Y").date()
+            days_left = (due_date_obj - today).days
+
+            if days_left < 0:
+                due_text = f"OVERDUE {abs(days_left)}d"
+                prefix = "🔴"
+            elif days_left == 0:
+                due_text = "TODAY"
+                prefix = "🟠"
+            elif days_left <= 2:
+                due_text = f"{days_left}d"
+                prefix = "🟡"
+            else:
+                due_text = f"{days_left}d"
+                prefix = "🟢"
+
+        except ValueError:
+            due_text = "Invalid"
+            prefix = "⚪"
+
+        print(f"{i}. {prefix} {status} {task['name']} | Due: {task['due_date']} ({due_text}) | {task['category']} | {task['priority']} ({task.get('value','-')})")
