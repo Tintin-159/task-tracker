@@ -5,5 +5,14 @@
         "Personal",
         "Study"
     ],
-    "tasks": []
+    "tasks": [
+        {
+            "name": "Complete Phase 2 - Task Tracker Project",
+            "category": "Personal",
+            "priority": "Critical",
+            "value": 10,
+            "due_date": "26-06-2026",
+            "completed": false
+        }
+    ]
 }
