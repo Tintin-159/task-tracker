@@ -42,38 +42,54 @@ def save_tasks():
     except Exception as e:
         print(f"Error saving tasks: {e}")
 
+
 def view_tasks():
     if len(tasks) == 0:
         print("No Tasks Available")
         return
 
-    today = date.today()
+    now = datetime.now()
 
     for i, task in enumerate(tasks, start=1):
         status = "[✓]" if task["completed"] else "[ ]"
 
         try:
-            due_date_obj = datetime.strptime(task["due_date"], "%d-%m-%Y").date()
-            days_left = (due_date_obj - today).days
+            # Parse full datetime (date + time)
+            due_datetime = datetime.strptime(task["due_date"], "%d-%m-%Y %H:%M")
+            time_left = due_datetime - now
 
-            if days_left < 0:
-                due_text = f"OVERDUE {abs(days_left)}d"
+            total_seconds = int(time_left.total_seconds())
+
+            if total_seconds < 0:
+                days = abs(total_seconds) // 86400
+                hours = (abs(total_seconds) % 86400) // 3600
+                due_text = f"OVERDUE {days}d {hours}h"
                 prefix = "🔴"
-            elif days_left == 0:
-                due_text = "TODAY"
-                prefix = "🟠"
-            elif days_left <= 2:
-                due_text = f"{days_left}d"
-                prefix = "🟡"
+
             else:
-                due_text = f"{days_left}d"
-                prefix = "🟢"
+                days = total_seconds // 86400
+                hours = (total_seconds % 86400) // 3600
+
+                if days == 0 and hours == 0:
+                    due_text = "NOW"
+                    prefix = "🟠"
+                elif days == 0:
+                    due_text = f"{hours}h"
+                    prefix = "🟠"
+                elif days <= 2:
+                    due_text = f"{days}d {hours}h"
+                    prefix = "🟡"
+                else:
+                    due_text = f"{days}d"
+                    prefix = "🟢"
 
         except ValueError:
             due_text = "Invalid"
             prefix = "⚪"
 
-        print(f"{i}. {prefix} {status} {task['name']} | Due: {task['due_date']} ({due_text}) | {task['category']} | {task['priority']} ({task.get('value','-')})")
+        print(
+            f"{i}. {prefix} {status} {task['name']} | Due: {task['due_date']} ({due_text}) | {task['category']} | {task['priority']} ({task.get('value', '-')})"
+        )
 
 def add_task():
     while True:
@@ -138,41 +154,50 @@ def add_task():
             print("Invalid input. Please enter a number.")
 
     # Due date
+
     while True:
-        due_input = input("\nEnter due date (DD-MM-YYYY or DD MM YYYY): ").strip()
+        due_input = input(
+            "\nEnter due date (DD-MM-YYYY or DD MM YYYY)\n"
+            "Optional time (24h): DD-MM-YYYY HH:MM\n> "
+        ).strip()
 
-        formats = ["%d-%m-%Y", "%d %m %Y"]
+        formats = [
+            "%d-%m-%Y %H:%M",
+            "%d %m %Y %H:%M",
+            "%d-%m-%Y",
+            "%d %m %Y"
+        ]
 
-        due_date_obj = None
+        due_datetime = None
 
-        try:
-            #Try both formats
-            for fmt in formats:
-                try:
-                    due_date_obj = datetime.strptime(due_input, fmt).date()
-                    break
-                except ValueError:
-                    continue
-
-            #If no format worked
-            if due_date_obj is None:
-                print("Invalid format. Use DD-MM-YYYY or DD MM YYYY.")
+        # Try all formats
+        for fmt in formats:
+            try:
+                due_datetime = datetime.strptime(due_input, fmt)
+                break
+            except ValueError:
                 continue
 
-            #Get today's date
-            today = date.today()
+        if due_datetime is None:
+            print("Invalid format. Try again.")
+            continue
 
-            #Reject past dates
-            if due_date_obj < today:
-                print("Due date cannot be in the past.")
-                continue
+        # ✅ If NO time was provided → set to 22:00
+        if "%" not in formats[0] or due_datetime.hour == 0 and due_datetime.minute == 0:
+            # Detect if user only entered date (length-based is simple + reliable here)
+            if len(due_input.split()) == 1 or ":" not in due_input:
+                due_datetime = due_datetime.replace(hour=22, minute=0)
 
-            #Store in consistent format
-            due_date = due_date_obj.strftime("%d-%m-%Y")
-            break
+        # ✅ Reject past date/time
+        now = datetime.now()
+        if due_datetime < now:
+            print("Due date cannot be in the past.")
+            continue
 
-        except Exception:
-            print("Invalid input. Please try again.")
+        # ✅ Store in 24-hour format
+        due_date = due_datetime.strftime("%d-%m-%Y %H:%M")
+        break
+
 
     #STORE BOTH LABEL + VALUE
     task = {
@@ -279,33 +304,48 @@ def edit_task():
             print("Invalid input.")
 
     #Edit due date
-    from datetime import datetime, date
 
     while True:
-        due_input = input(f"Enter new due date (DD-MM-YYYY) or press Enter to keep ({task['due_date']}): ").strip()
+        due_input = input(
+            f"Enter new due date (DD-MM-YYYY + optional HH:MM)\n"
+            f"Leave blank to keep ({task['due_date']}): "
+        ).strip()
 
         if not due_input:
             break
 
-        formats = ["%d-%m-%Y", "%d %m %Y"]
-        due_date_obj = None
+        formats = [
+            "%d-%m-%Y %H:%M",
+            "%d %m %Y %H:%M",
+            "%d-%m-%Y",
+            "%d %m %Y"
+        ]
+
+        due_datetime = None
 
         for fmt in formats:
             try:
-                due_date_obj = datetime.strptime(due_input, fmt).date()
+                due_datetime = datetime.strptime(due_input, fmt)
                 break
             except ValueError:
                 continue
 
-        if due_date_obj is None:
+        if due_datetime is None:
             print("Invalid format.")
             continue
 
-        if due_date_obj < date.today():
+        # If no time entered → default to 22:00
+        if len(due_input.split()) <= 3:
+            due_datetime = due_datetime.replace(hour=22, minute=0, second=0)
+            print("No time entered → default set to 22:00")
+
+        # Prevent past dates
+        if due_datetime < datetime.now():
             print("Due date cannot be in the past.")
             continue
 
-        task["due_date"] = due_date_obj.strftime("%d-%m-%Y")
+        # Store in same format as add_task
+        task["due_date"] = due_datetime.strftime("%d-%m-%Y %H:%M")
         break
 
     save_tasks()

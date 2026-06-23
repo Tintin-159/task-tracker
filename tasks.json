@@ -5,14 +5,5 @@
         "Personal",
         "Study"
     ],
-    "tasks": [
-        {
-            "name": "finish backend",
-            "category": "Personal",
-            "priority": "Critical",
-            "value": 10,
-            "due_date": "23-06-2026",
-            "completed": false
-        }
-    ]
+    "tasks": []
 }
