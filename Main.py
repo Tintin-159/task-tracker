@@ -32,9 +32,9 @@ while True:
         case 5:
             delete_task()
         case 6:
-            search_tasks()
+            search_task()
         case 7:
-            filter_tasks()
+            filter_task()
         case 8:
             break
         case _:

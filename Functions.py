@@ -331,7 +331,7 @@ def delete_task():
     else:
         print("Invalid task number")
 
-def search_tasks():
+def search_task():
     if len(tasks) == 0:
         print("No Tasks Available")
         return
@@ -409,44 +409,5 @@ def search_tasks():
         print(f"{i}. {prefix} {status} {task['name']} | Due: {task['due_date']} ({due_text}) | {task['category']} | {task['priority']} ({task.get('value','-')})")
 
 
-def filter_tasks(task_list, completed=None, category=None, min_value=None, max_value=None, due_before=None, due_after=None):
-    from datetime import datetime
-
-    results = []
-
-    for task in task_list:
-        #Filter by completion status
-        if completed is not None and task["completed"] != completed:
-            continue
-
-        #Filter by category
-        if category and task["category"].lower() != category.lower():
-            continue
-
-        #Filter by importance (value)
-        if min_value is not None and task.get("value", 0) < min_value:
-            continue
-
-        if max_value is not None and task.get("value", 0) > max_value:
-            continue
-
-        #Convert task date once
-        try:
-            task_date = datetime.strptime(task["due_date"], "%d-%m-%Y").date()
-        except ValueError:
-            continue  # skip invalid dates
-
-        #Filter by due date range
-        if due_before:
-            due_before_date = datetime.strptime(due_before, "%d-%m-%Y").date()
-            if task_date > due_before_date:
-                continue
-
-        if due_after:
-            due_after_date = datetime.strptime(due_after, "%d-%m-%Y").date()
-            if task_date < due_after_date:
-                continue
-
-        results.append(task)
-
-    return results
+def filter_task():
+    pass
