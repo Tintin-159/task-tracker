@@ -1,48 +1,6 @@
-import json
-import os
-from datetime import datetime, date
+from Internal_Functions import *
 
-tasks = []
-categories = ["School", "Work", "Personal", "Study"]
-
-def load_tasks():
-    global tasks, categories
-    try:
-        with open("tasks.json", "r") as file:
-            data = json.load(file)
-
-            # Support both old and new format
-            if isinstance(data, list):
-                tasks = data
-            else:
-                tasks = data.get("tasks", [])
-                categories = data.get("categories", categories)
-
-    except (FileNotFoundError, json.JSONDecodeError):
-        tasks = []
-        categories = ["School", "Work", "Personal", "Study"]
-
-def save_tasks():
-    temp_file = "tasks.json.tmp"
-
-    data = {
-        "categories": categories,
-        "tasks": tasks
-    }
-
-    try:
-        with open(temp_file, "w") as file:
-            json.dump(data, file, indent=4)
-
-        if os.path.exists(temp_file):
-            os.replace(temp_file, "tasks.json")
-        else:
-            print("Error: temp file was not created.")
-
-    except Exception as e:
-        print(f"Error saving tasks: {e}")
-
-
+#The main functions
 def view_tasks():
     if len(tasks) == 0:
         print("No Tasks Available")
@@ -154,7 +112,6 @@ def add_task():
             print("Invalid input. Please enter a number.")
 
     # Due date
-
     while True:
         due_input = input(
             "\nEnter due date (DD-MM-YYYY or DD MM YYYY)\n"
@@ -182,30 +139,45 @@ def add_task():
             print("Invalid format. Try again.")
             continue
 
-        # ✅ If NO time was provided → set to 22:00
+        #If NO time was provided → set to 22:00
         if "%" not in formats[0] or due_datetime.hour == 0 and due_datetime.minute == 0:
             # Detect if user only entered date (length-based is simple + reliable here)
             if len(due_input.split()) == 1 or ":" not in due_input:
                 due_datetime = due_datetime.replace(hour=22, minute=0)
 
-        # ✅ Reject past date/time
+        #Reject past date/time
         now = datetime.now()
         if due_datetime < now:
             print("Due date cannot be in the past.")
             continue
 
-        # ✅ Store in 24-hour format
+        #Store in 24-hour format
         due_date = due_datetime.strftime("%d-%m-%Y %H:%M")
         break
 
+    #Time needed
+    while True:
+        time_input = input(
+            "\nEnter time required (e.g. '30 min', '2 hours', '1 day', '1 week'): "
+        )
 
-    #STORE BOTH LABEL + VALUE
+        time_required = convert_to_hours(time_input)
+
+        if time_required is not None and time_required > 0:
+            break
+        else:
+            print("Invalid format. Try again.")
+
+    urgency_value = urgency(due_date,time_required)
+            #STORE BOTH LABEL + VALUE
     task = {
         "name": task_name,
         "category": category,
         "priority": priority,  # text label
         "value": value,        # numeric value (for sorting/graphing)
         "due_date": due_date,
+        "time required": time_required,
+        "urgency": urgency_value,
         "completed": False
     }
 
@@ -304,7 +276,6 @@ def edit_task():
             print("Invalid input.")
 
     #Edit due date
-
     while True:
         due_input = input(
             f"Enter new due date (DD-MM-YYYY + optional HH:MM)\n"
@@ -348,6 +319,23 @@ def edit_task():
         task["due_date"] = due_datetime.strftime("%d-%m-%Y %H:%M")
         break
 
+    # Edit time required
+    while True:
+        new_time = input(
+            f"Enter new time required (e.g. '2 hours') or press Enter to keep: "
+        ).strip()
+
+        if not new_time:
+            break
+
+        time_required = convert_to_hours(new_time)
+
+        if time_required is not None and time_required > 0:
+            task["time required"] = time_required
+            break
+        else:
+            print("Invalid format.")
+    task["urgency"] = urgency(task)
     save_tasks()
     print("Task updated ✅")
 
@@ -366,7 +354,7 @@ def delete_task():
 
     if 1 <= choice <= len(tasks):
         removed = tasks.pop(choice - 1)
-        save_tasks()   # ✅ save
+        save_tasks()   #save
         print(f"Task '{removed['name']}' deleted ✅")
     else:
         print("Invalid task number")
@@ -448,6 +436,6 @@ def search_task():
 
         print(f"{i}. {prefix} {status} {task['name']} | Due: {task['due_date']} ({due_text}) | {task['category']} | {task['priority']} ({task.get('value','-')})")
 
-
 def filter_task():
     pass
+
