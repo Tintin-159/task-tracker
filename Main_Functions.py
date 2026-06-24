@@ -1,19 +1,19 @@
-from Internal_Functions import *
+import Internal_Functions as core
 
 #The main functions
 def view_tasks():
-    if len(tasks) == 0:
+    if len(core.tasks) == 0:
         print("No Tasks Available")
         return
 
-    now = datetime.now()
+    now = core.datetime.now()
 
-    for i, task in enumerate(tasks, start=1):
+    for i, task in enumerate(core.tasks, start=1):
         status = "[✓]" if task["completed"] else "[ ]"
 
         try:
             # Parse full datetime (date + time)
-            due_datetime = datetime.strptime(task["due_date"], "%d-%m-%Y %H:%M")
+            due_datetime = core.datetime.strptime(task["due_date"], "%d-%m-%Y %H:%M")
             time_left = due_datetime - now
 
             total_seconds = int(time_left.total_seconds())
@@ -58,7 +58,7 @@ def add_task():
 
     # Category
     while True:
-        print("\nAvailable categories:", ", ".join(categories))
+        print("\nAvailable categories:", ", ".join(core.categories))
         category = input("Enter category: ").strip()
 
         if not category:
@@ -67,14 +67,14 @@ def add_task():
 
         category = category.capitalize()
 
-        if category in categories:
+        if category in core.categories:
             break
         else:
             choice = input("Category not found. Add it? (y/n): ").lower()
 
             if choice == "y":
-                if category not in categories:
-                    categories.append(category)
+                if category not in core.categories:
+                    core.categories.append(category)
                 print(f"Category '{category}' added ✅")
                 break
             else:
@@ -130,7 +130,7 @@ def add_task():
         # Try all formats
         for fmt in formats:
             try:
-                due_datetime = datetime.strptime(due_input, fmt)
+                due_datetime = core.datetime.strptime(due_input, fmt)
                 break
             except ValueError:
                 continue
@@ -146,7 +146,7 @@ def add_task():
                 due_datetime = due_datetime.replace(hour=22, minute=0)
 
         #Reject past date/time
-        now = datetime.now()
+        now = core.datetime.now()
         if due_datetime < now:
             print("Due date cannot be in the past.")
             continue
@@ -161,14 +161,14 @@ def add_task():
             "\nEnter time required (e.g. '30 min', '2 hours', '1 day', '1 week'): "
         )
 
-        time_required = convert_to_hours(time_input)
+        time_required = core.convert_to_hours(time_input)
 
         if time_required is not None and time_required > 0:
             break
         else:
             print("Invalid format. Try again.")
 
-    urgency_value = urgency(due_date,time_required)
+    urgency_value = core.urgency(due_date,time_required)
             #STORE BOTH LABEL + VALUE
     task = {
         "name": task_name,
@@ -181,12 +181,12 @@ def add_task():
         "completed": False
     }
 
-    tasks.append(task)
-    save_tasks()
+    core.tasks.append(task)
+    core.save_tasks()
     print("Task added ✅")
 
 def complete_task():
-    if len(tasks) == 0:
+    if len(core.tasks) == 0:
         print("No Tasks Available")
         return
 
@@ -198,15 +198,15 @@ def complete_task():
         print("Invalid input")
         return
 
-    if 1 <= choice <= len(tasks):
-        tasks[choice - 1]["completed"] = True
-        save_tasks()   # ✅ save
+    if 1 <= choice <= len(core.tasks):
+        core.tasks[choice - 1]["completed"] = True
+        core.save_tasks()   # ✅ save
         print("Task marked as completed ✅")
     else:
         print("Invalid task number")
 
 def edit_task():
-    if len(tasks) == 0:
+    if len(core.tasks) == 0:
         print("No Tasks Available")
         return
 
@@ -218,11 +218,11 @@ def edit_task():
         print("Invalid input")
         return
 
-    if not (1 <= choice <= len(tasks)):
+    if not (1 <= choice <= len(core.tasks)):
         print("Invalid task number")
         return
 
-    task = tasks[choice - 1]
+    task = core.tasks[choice - 1]
 
     print("\n--- Editing Task ---")
 
@@ -232,16 +232,16 @@ def edit_task():
         task["name"] = new_name
 
     #Edit category
-    print("\nAvailable categories:", ", ".join(categories))
+    print("\nAvailable categories:", ", ".join(core.categories))
     new_category = input(f"Enter new category (leave blank to keep '{task['category']}'): ").strip()
 
     if new_category:
         new_category = new_category.capitalize()
 
-        if new_category not in categories:
+        if new_category not in core.categories:
             choice = input("Category not found. Add it? (y/n): ").lower()
             if choice == "y":
-                categories.append(new_category)
+                core.categories.append(new_category)
 
         task["category"] = new_category
 
@@ -296,7 +296,7 @@ def edit_task():
 
         for fmt in formats:
             try:
-                due_datetime = datetime.strptime(due_input, fmt)
+                due_datetime = core.datetime.strptime(due_input, fmt)
                 break
             except ValueError:
                 continue
@@ -307,11 +307,12 @@ def edit_task():
 
         # If no time entered → default to 22:00
         if len(due_input.split()) <= 3:
-            due_datetime = due_datetime.replace(hour=22, minute=0, second=0)
-            print("No time entered → default set to 22:00")
+            if ":" not in due_input:
+                due_datetime = due_datetime.replace(hour=22, minute=0, second=0)
+                print("No time entered → default set to 22:00")
 
         # Prevent past dates
-        if due_datetime < datetime.now():
+        if due_datetime < core.datetime.now():
             print("Due date cannot be in the past.")
             continue
 
@@ -326,21 +327,23 @@ def edit_task():
         ).strip()
 
         if not new_time:
+            task["urgency"] = core.urgency(task["due_date"], task["time required"])
             break
 
-        time_required = convert_to_hours(new_time)
+        time_required = core.convert_to_hours(new_time)
 
         if time_required is not None and time_required > 0:
             task["time required"] = time_required
+            task["urgency"] = core.urgency(task["due_date"], time_required)
             break
         else:
             print("Invalid format.")
-    task["urgency"] = urgency(task)
-    save_tasks()
+
+    core.save_tasks()
     print("Task updated ✅")
 
 def delete_task():
-    if len(tasks) == 0:
+    if len(core.tasks) == 0:
         print("No Tasks Available")
         return
 
@@ -352,15 +355,15 @@ def delete_task():
         print("Invalid input")
         return
 
-    if 1 <= choice <= len(tasks):
-        removed = tasks.pop(choice - 1)
-        save_tasks()   #save
+    if 1 <= choice <= len(core.tasks):
+        removed = core.tasks.pop(choice - 1)
+        core.save_tasks()   #save
         print(f"Task '{removed['name']}' deleted ✅")
     else:
         print("Invalid task number")
 
 def search_task():
-    if len(tasks) == 0:
+    if len(core.tasks) == 0:
         print("No Tasks Available")
         return
 
@@ -384,14 +387,14 @@ def search_task():
 
     #Filtering logic
     if option == 1:
-        results = [t for t in tasks if keyword in t["name"].lower()]
+        results = [t for t in core.tasks if keyword in t["name"].lower()]
     elif option == 2:
-        results = [t for t in tasks if keyword in t["category"].lower()]
+        results = [t for t in core.tasks if keyword in t["category"].lower()]
     elif option == 3:
-        results = [t for t in tasks if keyword in t["priority"].lower()]
+        results = [t for t in core.tasks if keyword in t["priority"].lower()]
     elif option == 4:
         results = [
-            t for t in tasks
+            t for t in core.tasks
             if keyword in t["name"].lower()
             or keyword in t["category"].lower()
             or keyword in t["priority"].lower()

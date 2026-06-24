@@ -1,4 +1,5 @@
 from Main_Functions import *
+from Internal_Functions import load_tasks
 
 load_tasks()
 

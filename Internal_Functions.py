@@ -25,7 +25,6 @@ def load_tasks():
 
 def save_tasks():
     temp_file = "tasks.json.tmp"
-    print("Debug...")
 
     data = {
         "categories": categories,
@@ -66,20 +65,21 @@ def convert_to_hours(time_input):
 
 def urgency(due_date, time_needed):
     try:
-        due_datetime = datetime.strptime(tasks["due_date"], "%d-%m-%Y %H:%M")
+        due_datetime = datetime.strptime(due_date, "%d-%m-%Y %H:%M")
         now = datetime.now()
 
         time_available = (due_datetime - now).total_seconds() / 3600
-        time_needed = tasks.get("time_required", 1)
 
         if time_available <= 0:
             return 10
 
-        urgency_score = (time_needed / (time_available + 1)) * 10
+        urgency_score = (time_needed / time_available) * 10
+
         return round(min(10, urgency_score), 2)
 
     except:
         return 0
+
 
 def calculate_priority():
     pass

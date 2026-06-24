@@ -5,5 +5,16 @@
         "Personal",
         "Study"
     ],
-    "tasks": []
+    "tasks": [
+        {
+            "name": "test",
+            "category": "School",
+            "priority": "Critical",
+            "value": 10,
+            "due_date": "24-06-2026 10:15",
+            "time required": 0.08333333333333333,
+            "urgency": 10,
+            "completed": false
+        }
+    ]
 }
