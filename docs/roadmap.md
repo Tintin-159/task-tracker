@@ -7,7 +7,7 @@
 - [x] Create SQLite database
 
 ## Phase 2 - Database
-- [ ] Add new category
+- [X] Add new category
 - [ ] Add new task
 - [ ] Edit task
 - [ ] Delete task

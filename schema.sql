@@ -5,6 +5,8 @@ CREATE TABLE Tasks (
     due_date DATE,
     due_time TIME,
     priority INTEGER NOT NULL,
+    importance INTEGER NOT NULL,
+    urgency INTEGER NOT NULL,
     status TEXT NOT NULL,
     category_id INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
