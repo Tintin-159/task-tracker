@@ -8,10 +8,10 @@
 
 ## Phase 2 - Database
 - [X] Add new category
-- [ ] Add new task
-- [ ] Edit task
-- [ ] Delete task
-- [ ] View all tasks
+- [X] Add new task
+- [X] Edit task
+- [X] Delete task
+- [X] View all tasks
 
 ## Phase 3 - Business Logic
 - [ ] Search tasks

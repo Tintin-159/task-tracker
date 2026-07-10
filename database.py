@@ -1,5 +1,4 @@
 import sqlite3
-import datetime, time
 
 class Database:
     def __init__(self):
@@ -74,10 +73,11 @@ class Database:
                   description, \
                   due_date, \
                   due_time, \
+                  estimated_hours, \
                   importance, \
                   status, \
                   category_id)
-              VALUES (?, ?, ?, ?, ?, ?, ?) \
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?) \
               """
 
         self.cursor.execute(sql, (
@@ -142,6 +142,7 @@ class Task:
         description,
         due_date,
         due_time,
+        estimated_hours,
         priority,
         importance,
         urgency,
@@ -156,6 +157,7 @@ class Task:
         self.description = description
         self.due_date = due_date
         self.due_time = due_time
+        self.estimated_hours = estimated_hours
         self.priority = priority
         self.importance = importance
         self.urgency = urgency
