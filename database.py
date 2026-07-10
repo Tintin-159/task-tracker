@@ -68,19 +68,65 @@ class Database:
 
     # Tasks
     def add_task(self, task):
-        pass
+        sql = """
+              INSERT INTO Tasks (
+                  title, \
+                  description, \
+                  due_date, \
+                  due_time, \
+                  importance, \
+                  status, \
+                  category_id)
+              VALUES (?, ?, ?, ?, ?, ?, ?) \
+              """
+
+        self.cursor.execute(sql, (
+            task.category_name,
+            task.category_colour,
+            task.category_icon
+        ))
+
+        self.connection.commit()
 
     def get_tasks(self):
-        pass
+        sql = "SELECT * FROM Tasks"
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
 
     def get_task(self, task_id):
-        pass
+        sql = "SELECT * FROM Tasks WHERE task_id = ?"
+        self.cursor.execute(sql, (task_id,))
+        return self.cursor.fetchone()
 
     def update_task(self, task):
-        pass
+        sql = """
+              UPDATE Tasks
+              SET title = ?, \
+                  description = ?, \
+                  due_date = ?, \
+                  importance = ?, \
+                  status = ?, \
+                  category_id = ? \
+              WHERE task_id = ? \
+              """
+
+        self.cursor.execute(sql, (
+            task.title,
+            task.description,
+            task.due_date,
+            task.importance,
+            task.status,
+            task.category_id,
+            task.task_id
+        ))
+
+        self.connection.commit()
 
     def delete_task(self, task):
-        pass
+        sql = "DELETE FROM Tasks WHERE task_id = ?"
+
+        self.cursor.execute(sql, (task.task_id,))
+        self.connection.commit()
 
 class Category:
     def __init__(self, category_name, category_colour=None, category_icon=None, category_id=None):
